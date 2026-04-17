@@ -1,0 +1,30 @@
+{
+  "items": [
+    {
+      "id": 1001,
+      "date": "2026-04-14T11:12:12.942Z",
+      "personName": "Іван Петренко",
+      "transportName": "John Deere 6195M AA1234BB",
+      "fuelName": "ДП",
+      "valueLitr": 125.4,
+      "value": 5000,
+      "azsName": "АЗС-1",
+      "card1Number": "DRV-1111",
+      "card2Number": "TRN-2222",
+      "recipientName": "Іван Петренко"
+    },
+    {
+      "id": 1002,
+      "date": "2026-04-14T12:15:00.000Z",
+      "personName": "Petro Vasil",
+      "transportName": "Case Magnum 340 BC5678KK",
+      "fuelName": "ДП",
+      "valueLitr": 98.2,
+      "value": 4200,
+      "azsName": "АЗС-2",
+      "card1Number": "DRV-3333",
+      "card2Number": "TRN-4444",
+      "recipientName": ""
+    }
+  ]
+}
