@@ -1,22 +1,12 @@
-
-CRITICAL_FIELDS = [
-    "data",
-    "departmentName",
-    "subdivisionName",
-    "trkSerrialNumber",
-    "fuelName",
+REQUIRED_FIELDS = [
+    "id",
     "personName",
     "transportName",
-    "transportId",
-    "personId",
-    "value",
-    "valueLitr",
-    "groupId",
-    "azsName",
-    "recipientName",
-    "card1Id",
-    "card1Number",
-    "card1Type",
-    "card2Id",
-    "card2Number"
+    "fuelName",
+    "value"
 ]
+
+def get_missing_required_fields(record: dict) -> list[str]:
+    if record():
+        id = record.get(REQUIRED_FIELDS)
+    return []
