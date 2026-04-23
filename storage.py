@@ -12,3 +12,9 @@ def read_json_list(path: Path) -> list:
             return json.load(file)
     except json.JSONDecodeError:
          print(f"Error: The file {path.name} is corrupted or empty.")
+
+
+def write_json_list(data: list) -> None:
+    path = Path("data/missing_records.json") 
+    with open(path, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)

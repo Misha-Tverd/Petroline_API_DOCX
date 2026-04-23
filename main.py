@@ -1,8 +1,9 @@
-from storage import read_json_list
+from storage import read_json_list, write_json_list
 from validator import get_missing_required_fields
 import json
 import requests
 from mapper import map_transaction_to_doc_data 
+from validator import get_missing_required_fields
 
 # url = "https://apiv2.petroline.in.ua/api/TrkTransactions/list"
 
@@ -28,16 +29,19 @@ from mapper import map_transaction_to_doc_data
 # }
 
 # response = requests.post(url, json=payload, headers=headers)
-
 # print("STATUS:", response.status_code)
 # print("TEXT:", response.text)
 
 def main():
     data = read_json_list("data/test_data.json")
-    
-    print(data)
     requiremt_fields = map_transaction_to_doc_data(data[0])
-    print(requiremt_fields)
+    missed_fields = get_missing_required_fields(requiremt_fields)
+    if missed_fields == []:
+        print("All required fields are present.")
+    else:
+        write_json_list(missed_fields)
+        print("Missed fields:", missed_fields)
+        
 
 
 

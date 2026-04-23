@@ -1,12 +1,17 @@
 REQUIRED_FIELDS = [
     "id",
-    "personName",
-    "transportName",
-    "fuelName",
-    "value"
+    "driver",
+    "vehicle",
+    "fuel",
+    "amount",
+    "date",
+    "azs"
 ]
 
 def get_missing_required_fields(record: dict) -> list[str]:
-    if record():
-        id = record.get(REQUIRED_FIELDS)
-    return []
+    missing_fields = []
+    for field in REQUIRED_FIELDS:
+        value = record.get(field)
+        if value is None or str(value).strip() == "":
+            missing_fields.append(field)
+    return missing_fields
