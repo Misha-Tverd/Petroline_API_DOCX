@@ -1,12 +1,13 @@
-REQUIRED_FIELDS = [
+REQUIRED_FIELDS = (
     "id",
     "driver",
     "vehicle",
     "fuel",
     "amount",
     "date",
-    "azs"
-]
+    "azs",
+)
+
 
 def get_missing_required_fields(record: dict) -> list[str]:
     missing_fields = []

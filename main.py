@@ -1,48 +1,51 @@
+from pathlib import Path
+
+from mapper import map_transaction_to_doc_data
 from storage import read_json_list, write_json_list
 from validator import get_missing_required_fields
-import json
-import requests
-from mapper import map_transaction_to_doc_data 
-from validator import get_missing_required_fields
 
-# url = "https://apiv2.petroline.in.ua/api/TrkTransactions/list"
+DATA_PATH = Path("data/test_data.json")
+MISSING_RECORDS_PATH = Path("data/missing_records.json")
 
-# token = "ТУТ_ТВІЙ_ТОКЕН"
 
-# headers = {
-#     "Authorization": f"Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJUaWNrZXQiOiI0QzQyQ0Q5Ni1BQ0VBLTQ1NTctQjg4My0yMTM4ODhDNjVFMTUiLCJuYmYiOjE3NzY4NjM5NzYsImV4cCI6MTc3NzAzNjc3NiwiaXNzIjoiaXNzdWVyQ2xvbmUiLCJhdWQiOiJhdWRpZW5jZUNsb25lIn0.Zr6ms6SthANrC-zdUfNODetvDpzrrPnsCQVPQRbyN2s",
-#     "Content-Type": "application/json",
-#     "accept": "application/json",
-# }
+def collect_missing_records(records: list[dict]) -> list[dict]:
+    missing_records = []
 
-# payload = {
-#     "filter": {
-#         "date": {
-#             "start": "2026-04-01T00:00:00Z",
-#             "end": "2026-04-22T23:59:59Z"
-#         }
-#     },
-#     "loadOption": {
-#         "skip": 0,
-#         "take": 1
-#     }
-# }
+    for record in records:
+        doc_data = map_transaction_to_doc_data(record)
+        missing_fields = get_missing_required_fields(doc_data)
 
-# response = requests.post(url, json=payload, headers=headers)
-# print("STATUS:", response.status_code)
-# print("TEXT:", response.text)
+        if missing_fields:
+            missing_records.append(
+                {
+                    "id": record.get("id"),
+                    "missing_fields": missing_fields,
+                    "record": record,
+                }
+            )
 
-def main():
-    data = read_json_list("data/test_data.json")
-    requiremt_fields = map_transaction_to_doc_data(data[0])
-    missed_fields = get_missing_required_fields(requiremt_fields)
-    if missed_fields == []:
+    return missing_records
+
+
+def main() -> None:
+    records = read_json_list(DATA_PATH)
+
+    if not records:
+        print("No records to process.")
+        write_json_list([], MISSING_RECORDS_PATH)
+        return
+
+    missing_records = collect_missing_records(records)
+    write_json_list(missing_records, MISSING_RECORDS_PATH)
+
+    if not missing_records:
         print("All required fields are present.")
-    else:
-        write_json_list(missed_fields)
-        print("Missed fields:", missed_fields)
-        
+        return
+
+    print(f"Records with missing fields: {len(missing_records)}")
+    for item in missing_records:
+        print(f"Record {item['id']}: {', '.join(item['missing_fields'])}")
 
 
-
-main()
+if __name__ == "__main__":
+    main()

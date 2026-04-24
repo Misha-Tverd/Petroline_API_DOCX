@@ -1,10 +1,16 @@
-def map_transaction_to_doc_data(record: dict) -> dict: 
+FIELD_MAPPING = {
+    "id": "id",
+    "driver": "personName",
+    "vehicle": "transportName",
+    "fuel": "fuelName",
+    "amount": "value",
+    "date": "date",
+    "azs": "azsName",
+}
+
+
+def map_transaction_to_doc_data(record: dict) -> dict:
     return {
-        "id": record.get("id"),
-        "driver": record.get("personName"),
-        "vehicle": record.get("transportName"),
-        "fuel": record.get("fuelName"),
-        "amount": record.get("value"),
-        "date": record.get("date"),
-        "azs": record.get("azsName")
+        doc_field: record.get(api_field)
+        for doc_field, api_field in FIELD_MAPPING.items()
     }
