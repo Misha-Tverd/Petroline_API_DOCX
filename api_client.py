@@ -1,12 +1,39 @@
 from __future__ import annotations
 
+import base64
+import json
 from dataclasses import dataclass
+from datetime import UTC, datetime
 
 import requests
 
 
 class PetrolineApiError(Exception):
     pass
+
+
+def _normalize_bearer_token(token: str | None) -> str | None:
+    if not token:
+        return None
+    token = token.strip()
+    if token.lower().startswith("bearer "):
+        token = token[7:].strip()
+    return token or None
+
+
+def _jwt_expiration(token: str | None) -> datetime | None:
+    token = _normalize_bearer_token(token)
+    if not token or token.count(".") != 2:
+        return None
+
+    try:
+        payload = token.split(".")[1]
+        payload += "=" * (-len(payload) % 4)
+        data = json.loads(base64.urlsafe_b64decode(payload))
+        exp = data.get("exp")
+        return datetime.fromtimestamp(exp, UTC) if exp else None
+    except (ValueError, TypeError, json.JSONDecodeError):
+        return None
 
 
 @dataclass
@@ -17,6 +44,9 @@ class PetrolineClient:
     timeout: int = 30
     token: str | None = None
 
+    def __post_init__(self) -> None:
+        self.token = _normalize_bearer_token(self.token)
+
     def _headers(self) -> dict[str, str]:
         headers = {
             "accept": "application/json",
@@ -25,6 +55,16 @@ class PetrolineClient:
         if self.token:
             headers["Authorization"] = f"Bearer {self.token}"
         return headers
+
+    def _token_expired(self) -> bool:
+        expires_at = _jwt_expiration(self.token)
+        return bool(expires_at and expires_at <= datetime.now(UTC))
+
+    def _ensure_token_is_current(self) -> None:
+        if self._token_expired():
+            expires_at = _jwt_expiration(self.token)
+            expired_at = expires_at.strftime("%Y-%m-%d %H:%M:%S") if expires_at else "unknown time"
+            raise PetrolineApiError(f"PETROLINE_TOKEN is expired. Token expired at {expired_at} UTC.")
 
     def authenticate(self) -> str:
         url = f"{self.base_url}/api/Auth/token"
@@ -41,7 +81,8 @@ class PetrolineClient:
         if not token:
             raise PetrolineApiError(f"Token not found in auth response: {data}")
 
-        self.token = token
+        self.token = _normalize_bearer_token(token)
+        self._ensure_token_is_current()
         return token
 
     def build_trk_transactions_payload(
@@ -120,6 +161,10 @@ class PetrolineClient:
     def get_trk_transactions(self, payload: dict) -> list[dict]:
         if not self.token:
             self.authenticate()
+        elif self._token_expired() and self.login and self.password:
+            self.token = None
+            self.authenticate()
+        self._ensure_token_is_current()
 
         url = f"{self.base_url}/api/TrkTransactions/list"
         response = requests.post(url, json=payload, headers=self._headers(), timeout=self.timeout)
@@ -127,6 +172,11 @@ class PetrolineClient:
             raise PetrolineApiError(f"Transactions request failed: {response.status_code} {response.text}")
 
         data = response.json()
-        if not isinstance(data, list):
-            raise PetrolineApiError(f"Unexpected transactions response: {data}")
-        return data
+        if isinstance(data, list):
+            return data
+        if isinstance(data, dict):
+            for key in ("items", "data", "rows", "result"):
+                items = data.get(key)
+                if isinstance(items, list):
+                    return items
+        raise PetrolineApiError(f"Unexpected transactions response: {data}")

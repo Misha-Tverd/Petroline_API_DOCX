@@ -15,6 +15,7 @@ class Settings:
     petroline_base_url: str
     petroline_login: str
     petroline_password: str
+    petroline_token: str
     petroline_timeout: int
     use_sample_data: bool
     sample_data_path: Path
@@ -27,6 +28,12 @@ class Settings:
     date_to: str
     subdivision_id: int | None
     take: int
+    target_driver: str
+    company: str
+    structural_unit: str
+    accountant: str
+    fuel_limit: float
+    unit_name: str
 
 
 
@@ -43,12 +50,19 @@ def _to_int_or_none(value: str | None) -> int | None:
     return int(value)
 
 
+def _to_float(value: str | None, default: float = 0) -> float:
+    if value is None or value.strip() == "":
+        return default
+    return float(value.replace(",", "."))
+
+
 
 def get_settings() -> Settings:
     return Settings(
         petroline_base_url=os.getenv("PETROLINE_BASE_URL", "https://apiv2.petroline.in.ua").rstrip("/"),
         petroline_login=os.getenv("PETROLINE_LOGIN", ""),
         petroline_password=os.getenv("PETROLINE_PASSWORD", ""),
+        petroline_token=os.getenv("PETROLINE_TOKEN", ""),
         petroline_timeout=int(os.getenv("PETROLINE_TIMEOUT", "30")),
         use_sample_data=_to_bool(os.getenv("USE_SAMPLE_DATA", "true"), default=True),
         sample_data_path=Path(os.getenv("SAMPLE_DATA_PATH", "sample_data/sample_transactions.json")),
@@ -61,4 +75,10 @@ def get_settings() -> Settings:
         date_to=os.getenv("DATE_TO", ""),
         subdivision_id=_to_int_or_none(os.getenv("SUBDIVISION_ID")),
         take=int(os.getenv("TAKE", "100")),
+        target_driver=os.getenv("TARGET_DRIVER", "Кондратюк Сергій Анатолійович"),
+        company=os.getenv("COMPANY", ""),
+        structural_unit=os.getenv("STRUCTURAL_UNIT", ""),
+        accountant=os.getenv("ACCOUNTANT", ""),
+        fuel_limit=_to_float(os.getenv("FUEL_LIMIT"), default=1000),
+        unit_name=os.getenv("UNIT_NAME", "літр"),
     )
