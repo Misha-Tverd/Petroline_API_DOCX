@@ -14,7 +14,12 @@ def read_json_list(path: Path) -> list:
          print(f"Error: The file {path.name} is corrupted or empty.")
 
 
-def write_json_list(data: list) -> None:
+def write_missing_records(data: list) -> None:
     path = Path("data/missing_records.json") 
+    with open(path, "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=4)
+
+def test_data(data: list) -> None:
+    path = Path("data/test_data.json") 
     with open(path, "w", encoding="utf-8") as file:
         json.dump(data, file, ensure_ascii=False, indent=4)
